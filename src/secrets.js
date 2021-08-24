@@ -25,6 +25,7 @@ async function getSecrets(secretRequests, client) {
     const responseCache = new Map();
     const results = [];
     for (const secretRequest of secretRequests) {
+        console.log(secretRequests)
         let { path, selector } = secretRequest;
 
         const requestPath = `v1/${path}`;
@@ -67,7 +68,12 @@ function selectData(data, selector) {
     let result = JSON.stringify(ata.evaluate(data));
     // Compat for custom engines
     if (!result && ((ata.ast().type === "path" && ata.ast()['steps'].length === 1) || ata.ast().type === "string") && selector !== 'data' && 'data' in data) {
-        result = JSON.stringify(jsonata(`data.${selector}`).evaluate(data));
+        if (selector === "*") {
+            result = data.data;
+            console.log({data, result});
+        } else {
+            result = JSON.stringify(jsonata(`data.${selector}`).evaluate(data));
+        }
     } else if (!result) {
         throw Error(`Unable to retrieve result for ${selector}. No match data was found. Double check your Key or Selector.`);
     }

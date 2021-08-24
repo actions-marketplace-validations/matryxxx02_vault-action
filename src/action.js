@@ -130,6 +130,9 @@ function parseSecretsInput(secretsInput) {
             .map(part => part.trim())
             .filter(part => part.length !== 0);
 
+        // if (pathSpec === "*")
+        //     return {}
+        
         if (pathParts.length !== 2) {
             throw Error(`You must provide a valid path and key. Input: "${secret}"`);
         }
@@ -139,8 +142,8 @@ function parseSecretsInput(secretsInput) {
         /** @type {any} */
         const selectorAst = jsonata(selectorQuoted).ast();
         const selector = selectorQuoted.replace(new RegExp('"', 'g'), '');
-
-        if ((selectorAst.type !== "path" || selectorAst.steps[0].stages) && selectorAst.type !== "string" && !outputVarName) {
+        console.log({selectorAst})
+        if ((selectorAst.type !== "path" || selectorAst.steps[0].stages) && selectorAst.type !== "wildcard" && selectorAst.type !== "string" && !outputVarName) {
             throw Error(`You must provide a name for the output key when using json selectors. Input: "${secret}"`);
         }
 
@@ -157,6 +160,7 @@ function parseSecretsInput(secretsInput) {
             selector
         });
     }
+    console.log({output})
     return output;
 }
 
