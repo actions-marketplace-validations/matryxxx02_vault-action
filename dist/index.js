@@ -14683,8 +14683,8 @@ async function exportSecrets() {
             addMask(value)
             core.exportVariable(request.envVarName, value);
         }
-        core.setOutput(request.outputVarName, `${value}`);
-        core.debug(`✔ ${request.path} => outputs.${request.outputVarName}${exportEnv ? ` | env.${request.envVarName}` : ''}`);
+        //core.setOutput(request.outputVarName, `${value}`);
+        //core.debug(`✔ ${request.path} => outputs.${request.outputVarName}${exportEnv ? ` | env.${request.envVarName}` : ''}`);
     }
 };
 
