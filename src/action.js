@@ -7,6 +7,14 @@ const { auth: { retrieveToken }, secrets: { getSecrets } } = require('./index');
 
 const AUTH_METHODS = ['approle', 'token', 'github', 'jwt', 'kubernetes'];
 
+function addMask(value) {
+    for (const line of value.replace(/\r/g, '').split('\n')) {
+        if (line.length > 0) {
+            command.issue('add-mask', line);
+        }
+    }
+}
+
 async function exportSecrets() {
     const vaultUrl = core.getInput('url', { required: true });
     const vaultNamespace = core.getInput('namespace', { required: false });
@@ -78,24 +86,14 @@ async function exportSecrets() {
         if (cachedResponse) {
             core.debug('ℹ using cached response');
         }
-        if (typeof value === "string") {
-            for (const line of value.replace(/\r/g, '').split('\n')) {
-                if (line.length > 0) {
-                    command.issue('add-mask', line);
-                }
-            }
-        }
         
         if (exportEnv && typeof value === "object") {
             Object.entries(value).forEach(([envKey, envValue]) => {
-                for (const line of envValue.replace(/\r/g, '').split('\n')) {
-                    if (line.length > 0) {
-                        command.issue('add-mask', line);
-                    }
-                }
-                core.exportVariable(envKey, envValue)
+                addMask(envValue);
+                core.exportVariable(envKey, envValue);
             });
         } else if (exportEnv) {
+            addMask(value)
             core.exportVariable(request.envVarName, value);
         }
         core.setOutput(request.outputVarName, `${value}`);
@@ -123,6 +121,7 @@ function parseSecretsInput(secretsInput) {
 
     /** @type {SecretRequest[]} */
     const output = [];
+
     for (const secret of secrets) {
         let pathSpec = secret;
         let outputVarName = null;
@@ -141,38 +140,47 @@ function parseSecretsInput(secretsInput) {
             .split(/\s+/)
             .map(part => part.trim())
             .filter(part => part.length !== 0);
-
-        // if (pathSpec === "*")
-        //     return {}
         
         if (pathParts.length !== 2) {
             throw Error(`You must provide a valid path and key. Input: "${secret}"`);
         }
 
         const [path, selectorQuoted] = pathParts;
+        console.log(pathParts)
 
-        /** @type {any} */
-        const selectorAst = jsonata(selectorQuoted).ast();
-        const selector = selectorQuoted.replace(new RegExp('"', 'g'), '');
-        console.log({selectorAst})
-        if ((selectorAst.type !== "path" || selectorAst.steps[0].stages) && selectorAst.type !== "wildcard" && selectorAst.type !== "string" && !outputVarName) {
-            throw Error(`You must provide a name for the output key when using json selectors. Input: "${secret}"`);
+        if (selectorQuoted === "*") {
+            output.push({
+                path,
+                envVarName: "",
+                outputVarName: "",
+                selector: "*"
+            });
+        } else {
+            /** @type {any} */
+            const selectorAst = jsonata(selectorQuoted).ast();
+            const selector = selectorQuoted.replace(new RegExp('"', 'g'), '');
+    
+            if ((selectorAst.type !== "path" || selectorAst.steps[0].stages) && selectorAst.type !== "wildcard" && selectorAst.type !== "string" && !outputVarName) {
+                throw Error(`You must provide a name for the output key when using json selectors. Input: "${secret}"`);
+            }
+    
+            let envVarName = outputVarName;
+            if (!outputVarName) {
+                outputVarName = normalizeOutputKey(selector);
+                envVarName = normalizeOutputKey(selector, true);
+            }
+    
+            output.push({
+                path,
+                envVarName,
+                outputVarName,
+                selector
+            });
+
         }
 
-        let envVarName = outputVarName;
-        if (!outputVarName) {
-            outputVarName = normalizeOutputKey(selector);
-            envVarName = normalizeOutputKey(selector, true);
-        }
-
-        output.push({
-            path,
-            envVarName,
-            outputVarName,
-            selector
-        });
     }
-    console.log({output})
+
     return output;
 }
 

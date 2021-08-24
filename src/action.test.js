@@ -17,7 +17,6 @@ const { when } = require('jest-when');
 describe('parseSecretsInput', () => {
     it('parses simple secret', () => {
         const output = parseSecretsInput('test key');
-        console.log(output);
         expect(output).toContainEqual({
             path: 'test',
             selector: 'key',
@@ -27,13 +26,13 @@ describe('parseSecretsInput', () => {
     });
 
     it('parses all secrets', () => {
-        const output = parseSecretsInput('test *');
+        const output = parseSecretsInput('test * | kaka');
         console.log(output);
         expect(output).toContainEqual({
             path: 'test',
-            selector: 'key',
-            outputVarName: 'key',
-            envVarName: 'KEY'
+            selector: '*',
+            outputVarName: '',
+            envVarName: ''
         });
     });
 

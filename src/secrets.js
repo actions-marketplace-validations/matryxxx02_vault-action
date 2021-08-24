@@ -25,7 +25,6 @@ async function getSecrets(secretRequests, client) {
     const responseCache = new Map();
     const results = [];
     for (const secretRequest of secretRequests) {
-        console.log(secretRequests)
         let { path, selector } = secretRequest;
         const firstSelector = selector;
         const requestPath = `v1/${path}`;
@@ -49,7 +48,6 @@ async function getSecrets(secretRequests, client) {
             selector = "data." + selector
         }
         const value = firstSelector === "*" ? body.data["data"] : selectData(body, selector);
-        console.log({firstSelector, value, data: body.data["data"]});
         results.push({
             request: secretRequest,
             value,
