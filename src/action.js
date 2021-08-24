@@ -78,11 +78,14 @@ async function exportSecrets() {
         if (cachedResponse) {
             core.debug('ℹ using cached response');
         }
-        for (const line of value.replace(/\r/g, '').split('\n')) {
-            if (line.length > 0) {
-                command.issue('add-mask', line);
+        if (typeof value === "string") {
+            for (const line of value.replace(/\r/g, '').split('\n')) {
+                if (line.length > 0) {
+                    command.issue('add-mask', line);
+                }
             }
         }
+        
         if (exportEnv) {
             core.exportVariable(request.envVarName, `${value}`);
         }
