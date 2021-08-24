@@ -14675,8 +14675,10 @@ async function exportSecrets() {
             }
         }
         
-        if (exportEnv) {
-            core.exportVariable(request.envVarName, `${value}`);
+        if (exportEnv && typeof value === "object") {
+            Object.entries(value).forEach(([envKey, envValue]) => core.exportVariable(envKey, envValue));
+        } else if (exportEnv) {
+            core.exportVariable(request.envVarName, value);
         }
         core.setOutput(request.outputVarName, `${value}`);
         core.debug(`✔ ${request.path} => outputs.${request.outputVarName}${exportEnv ? ` | env.${request.envVarName}` : ''}`);
