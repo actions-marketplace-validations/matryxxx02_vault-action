@@ -87,7 +87,10 @@ async function exportSecrets() {
         }
         
         if (exportEnv && typeof value === "object") {
-            Object.entries(value).forEach(([envKey, envValue]) => core.exportVariable(envKey, envValue));
+            Object.entries(value).forEach(([envKey, envValue]) => {
+                command.issue('add-mask', envValue);
+                core.exportVariable(envKey, envValue)
+            });
         } else if (exportEnv) {
             core.exportVariable(request.envVarName, value);
         }
