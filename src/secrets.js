@@ -49,7 +49,7 @@ async function getSecrets(secretRequests, client) {
             selector = "data." + selector
         }
         const value = firstSelector === "*" ? body.data["data"] : selectData(body, selector);
-        console.log(value);
+        console.log({firstSelector, value, data: body.data["data"]});
         results.push({
             request: secretRequest,
             value,
