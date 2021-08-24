@@ -10882,7 +10882,7 @@ async function getSecrets(secretRequests, client) {
     for (const secretRequest of secretRequests) {
         console.log(secretRequests)
         let { path, selector } = secretRequest;
-
+        const firstSelector = selector;
         const requestPath = `v1/${path}`;
         let body;
         let cachedResponse = false;
@@ -10894,6 +10894,7 @@ async function getSecrets(secretRequests, client) {
             body = result.body;
             responseCache.set(requestPath, body);
         }
+
         if (!selector.match(/.*[\.].*/)) {
             selector = '"' + selector + '"'
         }
@@ -10902,8 +10903,8 @@ async function getSecrets(secretRequests, client) {
         if (body.data["data"] != undefined) {
             selector = "data." + selector
         }
-
-        const value = selectData(body, selector);
+        const value = firstSelector === "*" ? body.data["data"] : selectData(body, selector);
+        console.log({firstSelector, value, data: body.data["data"]});
         results.push({
             request: secretRequest,
             value,
@@ -10923,12 +10924,7 @@ function selectData(data, selector) {
     let result = JSON.stringify(ata.evaluate(data));
     // Compat for custom engines
     if (!result && ((ata.ast().type === "path" && ata.ast()['steps'].length === 1) || ata.ast().type === "string") && selector !== 'data' && 'data' in data) {
-        if (selector === "*") {
-            result = data.data;
-            console.log({data, result});
-        } else {
-            result = JSON.stringify(jsonata(`data.${selector}`).evaluate(data));
-        }
+        result = JSON.stringify(jsonata(`data.${selector}`).evaluate(data));
     } else if (!result) {
         throw Error(`Unable to retrieve result for ${selector}. No match data was found. Double check your Key or Selector.`);
     }
