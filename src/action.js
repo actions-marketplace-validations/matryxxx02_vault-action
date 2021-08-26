@@ -152,7 +152,7 @@ function parseSecretsInput(secretsInput) {
             output.push({
                 path,
                 envVarName: "*",
-                outputVarName: "",
+                outputVarName: "*",
                 selector: "*"
             });
         } else {
