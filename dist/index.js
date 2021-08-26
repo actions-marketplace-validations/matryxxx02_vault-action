@@ -14738,7 +14738,7 @@ function parseSecretsInput(secretsInput) {
         if (selectorQuoted === "*") {
             output.push({
                 path,
-                envVarName: "",
+                envVarName: "*",
                 outputVarName: "",
                 selector: "*"
             });
